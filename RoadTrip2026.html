@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🚗 Road Trip 2026 · SF → Seattle</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --card: #222534; --border: #2e3146;
+    --accent: #4f8ef7; --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #8892a4; --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.6; }
+
+  /* HEADER */
+  .hero { background: linear-gradient(135deg, #1e2a4a 0%, #2d1b4e 100%); padding: 24px 16px 20px; text-align: center; border-bottom: 1px solid var(--border); }
+  .hero h1 { font-size: 1.5rem; font-weight: 700; }
+  .hero .sub { color: var(--muted); margin-top: 4px; font-size: 0.88rem; }
+  .hero .badges { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .badge { background: rgba(255,255,255,0.07); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: 0.75rem; color: var(--muted); }
+
+  /* NAV — sticky so always reachable on long pages */
+  .nav { position: sticky; top: 0; z-index: 100; display: flex; overflow-x: auto; border-bottom: 1px solid var(--border); background: var(--surface); scrollbar-width: none; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-btn { flex-shrink: 0; padding: 12px 14px; cursor: pointer; border: none; background: none; color: var(--muted); font-size: 0.82rem; border-bottom: 2px solid transparent; transition: color .15s, border-color .15s; white-space: nowrap; min-height: 44px; }
+  .nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* PAGES */
+  .page { display: none; padding: 12px 10px 32px; max-width: 900px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* STOP CARDS */
+  .stop-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 14px; overflow: hidden; }
+  .stop-header { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: rgba(79,142,247,0.07); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .stop-num { background: var(--accent); color: #fff; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
+  .stop-title { font-size: 1rem; font-weight: 600; flex: 1; min-width: 0; }
+  .stop-dates { color: var(--muted); font-size: 0.78rem; }
+  .stop-body { padding: 12px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .info-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); margin-bottom: 4px; }
+  .info-value { font-size: 0.88rem; }
+
+  /* DRIVE LINK — large touch target */
+  .drive-link { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); text-decoration: none; font-size: 0.85rem; border: 1px solid rgba(79,142,247,0.3); border-radius: 8px; padding: 7px 12px; margin-top: 6px; min-height: 40px; }
+  .drive-link:active { background: rgba(79,142,247,0.15); }
+
+  /* HIGHLIGHTS */
+  .highlights { padding: 0 14px 14px; }
+  .highlights-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); margin-bottom: 8px; }
+  .highlight-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .hl-tag { background: rgba(124,92,191,0.15); border: 1px solid rgba(124,92,191,0.3); border-radius: 20px; padding: 5px 11px; font-size: 0.8rem; color: #c4b5fd; }
+  .hl-tag a { color: inherit; text-decoration: none; }
+
+  /* STATUS BADGES */
+  .status { display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+  .status.ok      { background: rgba(52,211,153,0.12); color: var(--green);  border: 1px solid rgba(52,211,153,0.3); }
+  .status.pending { background: rgba(251,191,36,0.12); color: var(--yellow); border: 1px solid rgba(251,191,36,0.3); }
+  .status.todo    { background: rgba(248,113,113,0.12); color: var(--red);   border: 1px solid rgba(248,113,113,0.3); }
+
+  /* WEATHER */
+  .weather-bar { display: flex; gap: 6px; padding: 8px 14px 10px; overflow-x: auto; scrollbar-width: none; border-top: 1px solid var(--border); background: rgba(0,0,0,0.15); }
+  .weather-bar::-webkit-scrollbar { display: none; }
+  .weather-day { flex-shrink: 0; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px; text-align: center; min-width: 60px; }
+  .weather-day .wd-date { font-size: 0.65rem; color: var(--muted); }
+  .weather-day .wd-icon { font-size: 1.2rem; }
+  .weather-day .wd-temps { font-size: 0.72rem; margin-top: 2px; }
+  .weather-day .wd-max { color: #fbbf24; font-weight: 600; }
+  .weather-day .wd-min { color: #93c5fd; }
+  .weather-day .wd-rain { font-size: 0.65rem; color: #60a5fa; margin-top: 1px; }
+  .weather-seasonal { padding: 6px 14px 10px; font-size: 0.78rem; color: var(--muted); border-top: 1px solid var(--border); background: rgba(0,0,0,0.15); }
+  .weather-loading  { padding: 6px 14px 10px; font-size: 0.78rem; color: var(--muted); border-top: 1px solid var(--border); }
+
+  /* WC inline per stop card */
+  .wc-inline { border-top: 1px solid rgba(52,211,153,0.2); background: rgba(6,25,15,0.5); padding: 8px 14px 12px; }
+  .wc-inline-header { font-size: 0.68rem; text-transform: uppercase; letter-spacing: .7px; color: var(--green); font-weight: 600; margin-bottom: 6px; }
+  .wc-inline-header a { color: var(--accent); text-decoration: none; font-weight: 400; text-transform: none; letter-spacing: 0; }
+  .wc-matches { display: flex; flex-direction: column; gap: 5px; }
+  /* On mobile, WC match rows stack vertically */
+  .wc-match { display: grid; grid-template-columns: auto 1fr auto; grid-template-rows: auto auto; column-gap: 8px; row-gap: 2px; align-items: center; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; font-size: 0.82rem; }
+  .wc-match.live        { border-color: rgba(52,211,153,0.5); background: rgba(52,211,153,0.06); }
+  .wc-match.final-match { border-color: rgba(251,191,36,0.4); background: rgba(251,191,36,0.05); }
+  .wc-date   { color: var(--muted); font-size: 0.7rem; grid-column: 1; grid-row: 1; white-space: nowrap; }
+  .wc-teams  { font-weight: 500; grid-column: 2; grid-row: 1; }
+  .wc-venue  { color: var(--muted); font-size: 0.68rem; grid-column: 1 / 3; grid-row: 2; }
+  .wc-badge  { font-size: 0.65rem; padding: 2px 7px; border-radius: 10px; grid-column: 3; grid-row: 1 / 3; align-self: center; white-space: nowrap; }
+  .wc-badge.live-badge  { background: rgba(52,211,153,0.2); color: var(--green);  border: 1px solid rgba(52,211,153,0.4); }
+  .wc-badge.done-badge  { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); }
+  .wc-badge.sched-badge { background: rgba(79,142,247,0.1);  color: var(--accent); border: 1px solid rgba(79,142,247,0.3); }
+  .wc-badge.final-badge { background: rgba(251,191,36,0.15); color: #fbbf24;       border: 1px solid rgba(251,191,36,0.4); }
+  .wc-tbd   { color: var(--muted); font-style: italic; }
+  .wc-team  { display: inline; }
+  .wc-vs    { color: var(--muted); margin: 0 5px; font-size: 0.75rem; }
+  .wc-score { font-weight: 700; color: var(--green); margin: 0 5px; }
+
+  /* SECTION HEADERS */
+  .section-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+
+  /* TABLES — horizontal scroll on mobile */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: var(--radius); border: 1px solid var(--border); }
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 480px; }
+  .data-table th { text-align: left; padding: 8px 10px; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); font-size: 0.7rem; text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
+  .data-table td { padding: 9px 10px; border-bottom: 1px solid rgba(46,49,70,0.5); vertical-align: top; }
+  .data-table tr:last-child td { border-bottom: none; }
+
+  /* BUDGET */
+  .budget-total { background: linear-gradient(135deg, rgba(79,142,247,0.15), rgba(124,92,191,0.15)); border: 1px solid rgba(79,142,247,0.3); border-radius: var(--radius); padding: 16px; text-align: center; margin-bottom: 16px; }
+  .budget-total .amount { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+  .budget-total .label  { color: var(--muted); font-size: 0.82rem; margin-top: 4px; }
+
+  /* CHECKLIST */
+  .checklist-section { margin-bottom: 16px; }
+  .checklist-section-title { background: var(--surface); border-radius: 8px; padding: 10px 12px; font-weight: 600; font-size: 0.88rem; margin-bottom: 6px; border: 1px solid var(--border); }
+  .checklist-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; border-radius: 8px; }
+  .checklist-item:active { background: rgba(255,255,255,0.04); }
+  .checklist-item input[type=checkbox] { margin-top: 2px; accent-color: var(--accent); cursor: pointer; width: 20px; height: 20px; flex-shrink: 0; }
+  .checklist-item.checked .item-label { text-decoration: line-through; color: var(--muted); }
+  .item-label { flex: 1; font-size: 0.9rem; }
+  .item-note  { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+  .item-comment { margin-top: 6px; width: 100%; background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.85rem; padding: 7px 9px; resize: vertical; min-height: 36px; font-family: inherit; }
+  .item-comment:focus { outline: none; border-color: var(--accent); }
+  .item-comment::placeholder { color: var(--muted); }
+
+  /* OLYMPIC / YOSEMITE CARDS */
+  .yosemite-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; }
+  .yosemite-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+  .yosemite-card .meta { font-size: 0.8rem; color: var(--muted); }
+  .stars { color: #fbbf24; }
+  .tip-box { background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.3); border-radius: var(--radius); padding: 12px 14px; font-size: 0.84rem; color: #fde68a; margin-top: 14px; line-height: 1.5; }
+
+  /* DESKTOP OVERRIDES */
+  @media (min-width: 600px) {
+    .hero { padding: 36px 24px 28px; }
+    .hero h1 { font-size: 2rem; }
+    .hero .sub { font-size: 1rem; }
+    .page { padding: 20px 16px 40px; }
+    .stop-header { padding: 14px 18px; }
+    .stop-body { padding: 14px 18px; }
+    .highlights { padding: 0 18px 14px; }
+    .nav-btn { padding: 14px 18px; font-size: 0.9rem; }
+    .wc-match { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; }
+    .wc-date  { min-width: 80px; grid-column: unset; grid-row: unset; }
+    .wc-teams { flex: 1; text-align: center; grid-column: unset; grid-row: unset; }
+    .wc-venue { grid-column: unset; grid-row: unset; }
+    .wc-badge { grid-column: unset; grid-row: unset; }
+    .data-table { min-width: unset; }
+    .table-wrap { border: none; border-radius: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🚗 Road Trip 2026</h1>
+  <div class="sub">San Francisco → Seattle · 3 Jul – 24 Jul 2026</div>
+  <div class="badges">
+    <span class="badge">11 étapes</span>
+    <span class="badge">21 nuits</span>
+    <span class="badge">~2 000 miles</span>
+    <span class="badge">4 personnes</span>
+    <span class="badge">Minivan</span>
+  </div>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showPage('itinerary', this)">📅 Itinéraire</button>
+  <button class="nav-btn" onclick="showPage('olympic', this)">🌿 Olympic NP</button>
+  <button class="nav-btn" onclick="showPage('reservations', this)">📋 Réservations</button>
+  <button class="nav-btn" onclick="showPage('budget', this)">💰 Budget</button>
+  <button class="nav-btn" onclick="showPage('gear', this)">🏕️ Équipement</button>
+</nav>
+
+<!-- ==================== ITINERARY ==================== -->
+<div id="itinerary" class="page active">
+
+  <!-- STOP 1 -->
+  <div class="stop-card" data-lat="37.7749" data-lon="-122.4194" data-dates="2026-07-03,2026-07-04" data-seasonal='{"icon":"☀️","maxC":18,"minC":13,"desc":"Ensoleillé, brumeux le matin","rain":5}'>
+    <div class="stop-header">
+      <div class="stop-num">1</div>
+      <div class="stop-title">🌉 San Francisco</div>
+      <div class="stop-dates">3 – 5 Jul · 2 nuits</div>
+      <span class="status ok">✅ Réservé</span>
+    </div>
+    <div class="stop-body">
+      <div class="info-block">
+        <div class="info-label">Arrivée</div>
+        <div class="info-value">✈️ Vol — arrivée aéroport SFO</div>
+      </div>
+      <div class="info-block">
+        <div class="info-label">Hébergement</div>
+        <div class="info-value">🏨 Inn on Broadway<br><span style="color:var(--muted);font-size:0.82rem">2201 Van Ness Ave, Pacific Heights<br>Check-in 15h00 · Check-out 11h00 · 390 $</span></div>
+      </div>
+    </div>
+    <div class="highlights">
+      <div class="highlights-label">🗺️ Highlights & liens utiles</div>
+      <div class="highlight-list">
+        <span class="hl-tag"><a href="https://www.goldengate.org" target="_blank">🌉 Golden Gate Bridge</a></span>
+        <span class="hl-tag"><a href="https://www.alcatrazcruises.com" target="_blank">⛵ Alcatraz Cruises</a></span>
+        <span class="hl-tag"><a href="https://www.fishermanswharf.org" target="_blank">🦀 Fisherman's Wharf</a></span>
+        <span class="hl-tag"><a href="https://www.ferrybuildingmarketplace.com" target="_blank">🏛️ Ferry Building</a></span>
+        <span class="hl-tag"><a href="https://www.google.com/maps/search/Mission+Murals+San+Francisco" target="_blank">🎨 Mission Murals</a></span>
+        <span class="hl-tag"><a href="https://www.sfmta.com" target="_blank">🚃 Muni / Tramway</a></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOP 2 -->
+  <div class="stop-card" data-lat="37.7456" data-lon="-119.5936" data-dates="2026-07-05,2026-07-06,2026-07-07" data-seasonal='{"icon":"☀️","maxC":32,"minC":13,"desc":"Chaud et sec, soirées fraîches","rain":5}'>
+    <div class="stop-header">
+      <div class="stop-num">2</div>
+      <div class="stop-title">🏔️ Yosemite National Park</div>
+      <div class="stop-dates">5 – 8 Jul · 3 nuits</div>
+      <span class="status ok">✅ Réservé</span>
+    </div>
+    <div class="stop-body">
+      <div class="info-block">
+        <div class="info-label">Trajet depuis San Francisco</div>
+        <div class="info-value">
+          ~4h de route<br>
+          <a class="drive-link" href="https://www.google.com/maps/dir/San+Francisco,CA/Yosemite+Valley,CA" target="_blank">
+            🗺️ Voir sur Google Maps
+          </a>
+        </div>
+      </div>
+      <div class="info-block">
+        <div class="info-label">Hébergement</div>
+        <div class="info-value">⛺ Crane Flat Campground – Site 215<br><span style="color:var(--muted);font-size:0.82rem">Compte : rousseljb · 5–8 juil · 120 $ total · ✅ Réservé</span></div>
+      </div>
+    </div>
+    <div class="highlights">
+      <div class="highlights-label">🗺️ Highlights & liens utiles</div>
+      <div class="highlight-list">
+        <span class="hl-tag"><a href="https://www.nps.gov/yose/index.htm" target="_blank">🏔️ Yosemite NPS</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/yose/planyourvisit/elcapitan.htm" target="_blank">🧗 El Capitan</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/yose/planyourvisit/halfdome.htm" target="_blank">🪨 Half Dome</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/yose/planyourvisit/yosemitefalls.htm" target="_blank">💧 Yosemite Falls</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/yose/planyourvisit/glacierpoint.htm" target="_blank">🌄 Glacier Point</a></span>
+        <span class="hl-tag"><a href="https://www.recreation.gov/camping/gateways/2991" target="_blank">🏕️ Recreation.gov — Camping</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/yose/planyourvisit/valleyfloor.htm" target="_blank">🚶 Valley Floor Hike</a></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOP 3 -->
+  <div class="stop-card" data-lat="38.9399" data-lon="-119.9772" data-dates="2026-07-08,2026-07-09" data-seasonal='{"icon":"⛅","maxC":27,"minC":7,"desc":"Journées chaudes, nuits froides","rain":8}'>
+    <div class="stop-header">
+      <div class="stop-num">3</div>
+      <div class="stop-title">🏖️ Lake Tahoe</div>
+      <div class="stop-dates">8 – 10 Jul · 2 nuits</div>
+      <span class="status ok">✅ Réservé</span>
+    </div>
+    <div class="stop-body">
+      <div class="info-block">
+        <div class="info-label">Trajet depuis Yosemite</div>
+        <div class="info-value">
+          ~3h de route<br>
+          <a class="drive-link" href="https://www.google.com/maps/dir/Yosemite+Valley,CA/Lake+Tahoe,CA" target="_blank">
+            🗺️ Voir sur Google Maps
+          </a>
+        </div>
+      </div>
+      <div class="info-block">
+        <div class="info-label">Hébergement</div>
+        <div class="info-value">⛺ Kaspian Campground – Site 001<br><span style="color:var(--muted);font-size:0.82rem">✅ Réservé · ~35 $/nuit</span></div>
+      </div>
+    </div>
+    <div class="highlights">
+      <div class="highlights-label">🗺️ Highlights & liens utiles</div>
+      <div class="highlight-list">
+        <span class="hl-tag"><a href="https://www.parks.ca.gov/?page_id=506" target="_blank">💎 Emerald Bay SP</a></span>
+        <span class="hl-tag"><a href="https://www.nvstateparks.com/park/sand-harbor" target="_blank">🏖️ Sand Harbor</a></span>
+        <span class="hl-tag"><a href="https://www.google.com/maps/search/kayak+rental+lake+tahoe" target="_blank">🛶 Kayak sur le lac</a></span>
+        <span class="hl-tag"><a href="https://www.google.com/maps/search/sunset+lake+tahoe" target="_blank">🌅 Couchers de soleil</a></span>
+        <span class="hl-tag"><a href="https://www.tahoebooze.com/kaspian-campground" target="_blank">🏕️ Kaspian Campground</a></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOP 4 -->
+  <div class="stop-card" data-lat="41.3099" data-lon="-122.3106" data-dates="2026-07-10" data-seasonal='{"icon":"☀️","maxC":31,"minC":10,"desc":"Chaud et ensoleillé","rain":3}'>
+    <div class="stop-header">
+      <div class="stop-num">4</div>
+      <div class="stop-title">🌋 Mount Shasta</div>
+      <div class="stop-dates">10 – 11 Jul · 1 nuit</div>
+      <span class="status ok">✅ Réservé</span>
+    </div>
+    <div class="stop-body">
+      <div class="info-block">
+        <div class="info-label">Trajet depuis Lake Tahoe</div>
+        <div class="info-value">
+          ~3h30 de route<br>
+          <a class="drive-link" href="https://www.google.com/maps/dir/Lake+Tahoe,CA/Mount+Shasta,CA" target="_blank">
+            🗺️ Voir sur Google Maps
+          </a>
+        </div>
+      </div>
+      <div class="info-block">
+        <div class="info-label">Hébergement</div>
+        <div class="info-value">🏨 Summit View Inn<br><span style="color:var(--muted);font-size:0.82rem">1612 S Mount Shasta Blvd<br>Check-in 16h00–23h30 · 153 $</span></div>
+      </div>
+    </div>
+    <div class="highlights">
+      <div class="highlights-label">🗺️ Highlights & liens utiles</div>
+      <div class="highlight-list">
+        <span class="hl-tag"><a href="https://www.google.com/maps/place/Lake+Siskiyou" target="_blank">💧 Lac Siskiyou</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/cali/planyourvisit/castle-crags.htm" target="_blank">🗻 Castle Crags</a></span>
+        <span class="hl-tag"><a href="https://www.fs.usda.gov/recarea/stnf/recarea/?recid=6771" target="_blank">🌋 Vue sur le volcan</a></span>
+        <span class="hl-tag"><a href="https://www.google.com/maps/place/Mount+Shasta,+CA" target="_blank">📍 Mt Shasta City</a></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOP 5 -->
+  <div class="stop-card" data-lat="41.3956" data-lon="-124.0675" data-dates="2026-07-11,2026-07-12" data-seasonal='{"icon":"🌫️","maxC":18,"minC":11,"desc":"Brumeux le matin, doux","rain":10}'>
+    <div class="stop-header">
+      <div class="stop-num">5</div>
+      <div class="stop-title">🌳 Redwoods</div>
+      <div class="stop-dates">11 – 13 Jul · 2 nuits</div>
+      <span class="status ok">✅ Réservé</span>
+    </div>
+    <div class="stop-body">
+      <div class="info-block">
+        <div class="info-label">Trajet depuis Mount Shasta</div>
+        <div class="info-value">
+          ~3h30 de route<br>
+          <a class="drive-link" href="https://www.google.com/maps/dir/Mount+Shasta,CA/Prairie+Creek+Redwoods+State+Park,CA" target="_blank">
+            🗺️ Voir sur Google Maps
+          </a>
+        </div>
+      </div>
+      <div class="info-block">
+        <div class="info-label">Hébergement</div>
+        <div class="info-value">🏕️ Ormand Guest Ranch & Stables<br><span style="color:var(--muted);font-size:0.82rem">✅ Réservé · ~90 $/nuit</span></div>
+      </div>
+    </div>
+    <div class="highlights">
+      <div class="highlights-label">🗺️ Highlights & liens utiles</div>
+      <div class="highlight-list">
+        <span class="hl-tag"><a href="https://www.nps.gov/redw/index.htm" target="_blank">🌲 Redwood NPS</a></span>
+        <span class="hl-tag"><a href="https://www.parks.ca.gov/?page_id=415" target="_blank">🌿 Prairie Creek SP</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/redw/planyourvisit/ferncanyontrail.htm" target="_blank">🌿 Fern Canyon</a></span>
+        <span class="hl-tag"><a href="https://www.treesofmystery.net" target="_blank">🌳 Trees of Mystery</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/redw/planyourvisit/foundersgrovehike.htm" target="_blank">🏆 Founders Grove</a></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOP 6 -->
+  <div class="stop-card" data-lat="42.8684" data-lon="-122.1685" data-dates="2026-07-13" data-seasonal='{"icon":"⛅","maxC":20,"minC":4,"desc":"Frais, nuits très froides","rain":12}'>
+    <div class="stop-header">
+      <div class="stop-num">6</div>
+      <div class="stop-title">🔵 Crater Lake</div>
+      <div class="stop-dates">13 – 14 Jul · 1 nuit</div>
+      <span class="status todo">⚠️ À réserver</span>
+    </div>
+    <div class="stop-body">
+      <div class="info-block">
+        <div class="info-label">Trajet depuis les Redwoods</div>
+        <div class="info-value">
+          ~4h de route<br>
+          <a class="drive-link" href="https://www.google.com/maps/dir/Prairie+Creek+Redwoods+State+Park,CA/Crater+Lake+National+Park,OR" target="_blank">
+            🗺️ Voir sur Google Maps
+          </a>
+        </div>
+      </div>
+      <div class="info-block">
+        <div class="info-label">Hébergement</div>
+        <div class="info-value">🏨 Hôtel près du parc<br><span style="color:var(--muted);font-size:0.82rem">⚠️ Peu d'options — réserver vite · ~150 $/nuit</span></div>
+      </div>
+    </div>
+    <div class="highlights">
+      <div class="highlights-label">🗺️ Highlights & liens utiles</div>
+      <div class="highlight-list">
+        <span class="hl-tag"><a href="https://www.nps.gov/crla/index.htm" target="_blank">🔵 Crater Lake NPS</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/crla/planyourvisit/rimdrive.htm" target="_blank">🚗 Rim Drive</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/crla/planyourvisit/boat-tours.htm" target="_blank">⛵ Wizard Island Boat Tour</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/crla/planyourvisit/pinnacles-overlook.htm" target="_blank">🪨 Pinnacles Overlook</a></span>
+        <span class="hl-tag"><a href="https://www.craterlakelodges.com" target="_blank">🏨 Crater Lake Lodges</a></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOP 7 -->
+  <div class="stop-card" data-lat="44.6368" data-lon="-124.0535" data-dates="2026-07-14,2026-07-15" data-seasonal='{"icon":"🌫️","maxC":17,"minC":11,"desc":"Brumeux, côte fraîche","rain":15}'>
+    <div class="stop-header">
+      <div class="stop-num">7</div>
+      <div class="stop-title">🌊 Yachats, OR</div>
+      <div class="stop-dates">14 – 16 Jul · 2 nuits</div>
+      <span class="status ok">✅ Réservé</span>
+    </div>
+    <div class="stop-body">
+      <div class="info-block">
+        <div class="info-label">Trajet depuis Crater Lake</div>
+        <div class="info-value">
+          ~3h de route<br>
+          <a class="drive-link" href="https://www.google.com/maps/dir/Crater+Lake+National+Park,OR/Yachats,OR" target="_blank">
+            🗺️ Voir sur Google Maps
+          </a>
+        </div>
+      </div>
+      <div class="info-block">
+        <div class="info-label">Hébergement</div>
+        <div class="info-value">🏨 Adobe Resort Yachats<br><span style="color:var(--muted);font-size:0.82rem">Yachats, Oregon · 14–16 juil · 400 $ total · ✅ Réservé</span></div>
+      </div>
+    </div>
+    <div class="highlights">
+      <div class="highlights-label">🗺️ Highlights & liens utiles</div>
+      <div class="highlight-list">
+        <span class="hl-tag"><a href="https://www.adoberesort.com" target="_blank">🏨 Adobe Resort Yachats</a></span>
+        <span class="hl-tag"><a href="https://www.google.com/maps/place/Yachats,+OR" target="_blank">📍 Yachats Village</a></span>
+        <span class="hl-tag"><a href="https://www.google.com/maps/place/Cape+Perpetua+Scenic+Area" target="_blank">🌊 Cape Perpetua</a></span>
+        <span class="hl-tag"><a href="https://www.google.com/maps/place/Thor%27s+Well,+Yachats" target="_blank">🌀 Thor's Well</a></span>
+        <span class="hl-tag"><a href="https://www.google.com/maps/place/Spouting+Horn,+Yachats" target="_blank">💦 Spouting Horn</a></span>
+        <span class="hl-tag"><a href="https://www.aquarium.org" target="_blank">🦭 Oregon Coast Aquarium (Newport)</a></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOP 8 -->
+  <div class="stop-card" data-lat="45.8918" data-lon="-123.9615" data-dates="2026-07-16,2026-07-17" data-seasonal='{"icon":"🌤️","maxC":18,"minC":11,"desc":"Partiellement nuageux, doux","rain":12}'>
+    <div class="stop-header">
+      <div class="stop-num">8</div>
+      <div class="stop-title">🌊 Cannon Beach</div>
+      <div class="stop-dates">16 – 18 Jul · 2 nuits</div>
+      <span class="status todo">⚠️ À réserver</span>
+    </div>
+    <div class="stop-body">
+      <div class="info-block">
+        <div class="info-label">Trajet depuis Newport</div>
+        <div class="info-value">
+          ~1h30 de route<br>
+          <a class="drive-link" href="https://www.google.com/maps/dir/Newport,OR/Cannon+Beach,OR" target="_blank">
+            🗺️ Voir sur Google Maps
+          </a>
+        </div>
+      </div>
+      <div class="info-block">
+        <div class="info-label">Hébergement</div>
+        <div class="info-value">⛺ Camping<br><span style="color:var(--muted);font-size:0.82rem">À réserver · ~40 $/nuit</span></div>
+      </div>
+    </div>
+    <div class="highlights">
+      <div class="highlights-label">🗺️ Highlights & liens utiles</div>
+      <div class="highlight-list">
+        <span class="hl-tag"><a href="https://www.google.com/maps/place/Haystack+Rock,+Cannon+Beach" target="_blank">🪨 Haystack Rock</a></span>
+        <span class="hl-tag"><a href="https://www.oregonstateparks.org/index.cfm?do=parkPage.dsp_parkPage&parkId=136" target="_blank">🌲 Ecola State Park</a></span>
+        <span class="hl-tag"><a href="https://www.google.com/maps/search/tide+pools+cannon+beach" target="_blank">🐚 Tide Pools</a></span>
+        <span class="hl-tag"><a href="https://www.google.com/maps/search/puffins+cannon+beach" target="_blank">🐦 Puffins (saison juillet)</a></span>
+        <span class="hl-tag"><a href="https://www.recreation.gov/camping/gateways/1547" target="_blank">🏕️ Camping Oregon Coast</a></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOP 9 -->
+  <div class="stop-card" data-lat="46.8800" data-lon="-121.7269" data-dates="2026-07-18,2026-07-19" data-seasonal='{"icon":"⛅","maxC":18,"minC":7,"desc":"Frais en altitude, partiellement nuageux","rain":20}'>
+    <div class="stop-header">
+      <div class="stop-num">9</div>
+      <div class="stop-title">🏔️ Mount Rainier NP</div>
+      <div class="stop-dates">18 – 20 Jul · 2 nuits</div>
+      <span class="status pending">⏳ Dispo 11 juil</span>
+    </div>
+    <div class="stop-body">
+      <div class="info-block">
+        <div class="info-label">Trajet depuis Cannon Beach</div>
+        <div class="info-value">
+          ~3h30 de route<br>
+          <a class="drive-link" href="https://www.google.com/maps/dir/Cannon+Beach,OR/Mount+Rainier+National+Park,WA" target="_blank">
+            🗺️ Voir sur Google Maps
+          </a>
+        </div>
+      </div>
+      <div class="info-block">
+        <div class="info-label">Hébergement</div>
+        <div class="info-value">⛺ Cougar Rock Campground<br><span style="color:var(--muted);font-size:0.82rem">⏳ Dispo 11 juil à 10h · ~30 $/nuit</span></div>
+      </div>
+    </div>
+    <div class="highlights">
+      <div class="highlights-label">🗺️ Highlights & liens utiles</div>
+      <div class="highlight-list">
+        <span class="hl-tag"><a href="https://www.nps.gov/mora/index.htm" target="_blank">🏔️ Mt Rainier NPS</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/mora/planyourvisit/paradise.htm" target="_blank">🌸 Paradise Visitor Center</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/mora/planyourvisit/skyline-trail.htm" target="_blank">🥾 Skyline Trail</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/mora/planyourvisit/wildflowers.htm" target="_blank">🌺 Wildflower Meadows</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/mora/planyourvisit/reflectionlakes.htm" target="_blank">🪞 Reflection Lakes</a></span>
+        <span class="hl-tag"><a href="https://www.recreation.gov/camping/campgrounds/232464" target="_blank">🏕️ Cougar Rock — réservation</a></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOP 10 -->
+  <div class="stop-card" data-lat="47.8605" data-lon="-123.9340" data-dates="2026-07-20,2026-07-21,2026-07-22" data-seasonal='{"icon":"🌦️","maxC":18,"minC":9,"desc":"Pluies possibles, forêt tempérée","rain":30}'>
+    <div class="stop-header">
+      <div class="stop-num">10</div>
+      <div class="stop-title">🌿 Olympic NP</div>
+      <div class="stop-dates">20 – 23 Jul · 3 nuits</div>
+      <span class="status pending">⏳ À réserver</span>
+    </div>
+    <div class="stop-body">
+      <div class="info-block">
+        <div class="info-label">Trajet depuis Mount Rainier</div>
+        <div class="info-value">
+          ~2h30 de route<br>
+          <a class="drive-link" href="https://www.google.com/maps/dir/Mount+Rainier+National+Park,WA/Olympic+National+Park,WA" target="_blank">
+            🗺️ Voir sur Google Maps
+          </a>
+        </div>
+      </div>
+      <div class="info-block">
+        <div class="info-label">Hébergement</div>
+        <div class="info-value">⛺ Fairholme / Kalaloch<br><span style="color:var(--muted);font-size:0.82rem">Fairholme 4 juil · Kalaloch 7 juil · ~35 $/nuit</span></div>
+      </div>
+    </div>
+    <div class="highlights">
+      <div class="highlights-label">🗺️ Highlights & liens utiles</div>
+      <div class="highlight-list">
+        <span class="hl-tag"><a href="https://www.nps.gov/olym/index.htm" target="_blank">🌿 Olympic NPS</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/olym/planyourvisit/hoh-rain-forest.htm" target="_blank">🌧️ Hoh Rain Forest</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/olym/planyourvisit/hurricane-ridge.htm" target="_blank">🌬️ Hurricane Ridge</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/olym/planyourvisit/rialto-beach.htm" target="_blank">🏖️ Rialto Beach</a></span>
+        <span class="hl-tag"><a href="https://www.nps.gov/olym/planyourvisit/sol-duc-hot-springs.htm" target="_blank">♨️ Sol Duc Hot Springs</a></span>
+        <span class="hl-tag"><a href="https://www.recreation.gov/camping/campgrounds/231960" target="_blank">🏕️ Fairholme — réservation</a></span>
+        <span class="hl-tag"><a href="https://www.recreation.gov/camping/campgrounds/231959" target="_blank">🏕️ Kalaloch — réservation</a></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOP 11 -->
+  <div class="stop-card" data-lat="47.6062" data-lon="-122.3321" data-dates="2026-07-23" data-seasonal='{"icon":"☀️","maxC":24,"minC":14,"desc":"Ensoleillé, le plus beau mois","rain":5}'>
+    <div class="stop-header">
+      <div class="stop-num">11</div>
+      <div class="stop-title">✈️ Seattle</div>
+      <div class="stop-dates">23 – 24 Jul · 1 nuit</div>
+      <span class="status ok">✅ Réservé</span>
+    </div>
+    <div class="stop-body">
+      <div class="info-block">
+        <div class="info-label">Trajet depuis Olympic NP</div>
+        <div class="info-value">
+          ~3h de route<br>
+          <a class="drive-link" href="https://www.google.com/maps/dir/Olympic+National+Park,WA/Seattle,WA" target="_blank">
+            🗺️ Voir sur Google Maps
+          </a>
+        </div>
+      </div>
+      <div class="info-block">
+        <div class="info-label">Hébergement</div>
+        <div class="info-value">🏨 Moore Hotel<br><span style="color:var(--muted);font-size:0.82rem">1926 2nd Ave, Belltown<br>Check-in 16h00 · Check-out 02h30–11h00 · 211 $</span></div>
+      </div>
+    </div>
+    <div class="highlights">
+      <div class="highlights-label">🗺️ Highlights & liens utiles</div>
+      <div class="highlight-list">
+        <span class="hl-tag"><a href="https://www.pikeplacemarket.org" target="_blank">🐟 Pike Place Market</a></span>
+        <span class="hl-tag"><a href="https://www.spaceneedle.com" target="_blank">🚀 Space Needle</a></span>
+        <span class="hl-tag"><a href="https://www.google.com/maps/place/Capitol+Hill,+Seattle,+WA" target="_blank">🎸 Capitol Hill</a></span>
+        <span class="hl-tag"><a href="https://www.chihulygardenandglass.com" target="_blank">🎨 Chihuly Garden & Glass</a></span>
+        <span class="hl-tag"><a href="https://www.google.com/maps/place/Moore+Hotel+Seattle" target="_blank">📍 Moore Hotel</a></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== OLYMPIC ==================== -->
+<div id="olympic" class="page">
+  <div class="section-title">🌿 Olympic NP — Options Camping · 20–23 Juillet (3 nuits)</div>
+
+  <div class="tip-box">
+    ⏳ <strong>Fenêtres de réservation :</strong> Recreation.gov ouvre les réservations <strong>14 jours avant l'arrivée à 10h00 ET</strong>.<br>
+    📅 Fairholme (20 juil) → ouvre le <strong>6 juillet à 10h ET</strong> · Kalaloch (20 juil) → ouvre le <strong>6 juillet à 10h ET</strong><br>
+    💡 Kalaloch est extrêmement populaire — ouvrir plusieurs onglets et rafraîchir à l'heure exacte.
+  </div>
+
+  <div style="margin-top: 20px;">
+
+    <div class="yosemite-card" style="border-color: rgba(251,191,36,0.4);">
+      <h3>⭐ Kalaloch Campground — <span style="color:#fbbf24">PRIORITÉ 1</span></h3>
+      <div class="meta">Fenêtre : <strong>6 juillet à 10h ET</strong> · 170 sites · Vue sur l'océan Pacifique</div>
+      <div class="meta" style="margin-top:4px">Eau potable, toilettes · Directement sur la côte — couchers de soleil spectaculaires · Très demandé</div>
+      <div class="stars" style="margin-top:8px">⭐⭐⭐⭐</div>
+      <a class="drive-link" style="margin-top:10px" href="https://www.recreation.gov/camping/campgrounds/231959" target="_blank">🏕️ Réserver sur Recreation.gov</a>
+    </div>
+
+    <div class="yosemite-card" style="border-color: rgba(79,142,247,0.4);">
+      <h3>⭐ Fairholme Campground — <span style="color:#60a5fa">PRIORITÉ 2</span></h3>
+      <div class="meta">Fenêtre : <strong>6 juillet à 10h ET</strong> · 88 sites · Lac Crescent</div>
+      <div class="meta" style="margin-top:4px">Eau potable, toilettes · Baignade & kayak sur le lac · Cadre de forêt tempérée</div>
+      <div class="stars" style="margin-top:8px">⭐⭐⭐⭐</div>
+      <a class="drive-link" style="margin-top:10px" href="https://www.recreation.gov/camping/campgrounds/231960" target="_blank">🏕️ Réserver sur Recreation.gov</a>
+    </div>
+
+    <div class="yosemite-card">
+      <h3>Hoh Campground</h3>
+      <div class="meta">Fenêtre : <strong>6 juillet à 10h ET</strong> · 88 sites · Forêt tropicale pluviale</div>
+      <div class="meta" style="margin-top:4px">Eau potable, toilettes · Accès direct Hoh Rain Forest & Hall of Mosses · Calme et mystérieux</div>
+      <div class="stars" style="margin-top:8px">⭐⭐⭐</div>
+      <a class="drive-link" style="margin-top:10px" href="https://www.recreation.gov/camping/campgrounds/231961" target="_blank">🏕️ Réserver sur Recreation.gov</a>
+    </div>
+
+    <div class="yosemite-card">
+      <h3>Mora Campground</h3>
+      <div class="meta">Fenêtre : <strong>6 juillet à 10h ET</strong> · 94 sites · Côte nord</div>
+      <div class="meta" style="margin-top:4px">Eau potable, toilettes · Accès Rialto Beach & Hole-in-the-Wall · Bonne alternative côtière</div>
+      <div class="stars" style="margin-top:8px">⭐⭐⭐</div>
+      <a class="drive-link" style="margin-top:10px" href="https://www.recreation.gov/camping/campgrounds/233360" target="_blank">🏕️ Réserver sur Recreation.gov</a>
+    </div>
+
+    <div class="yosemite-card">
+      <h3>Sol Duc Campground</h3>
+      <div class="meta">Fenêtre : <strong>6 juillet à 10h ET</strong> · 82 sites · Vallée Sol Duc</div>
+      <div class="meta" style="margin-top:4px">Eau potable, toilettes · À 1km des sources chaudes Sol Duc · Randonnées en forêt ancienne</div>
+      <div class="stars" style="margin-top:8px">⭐⭐⭐</div>
+      <a class="drive-link" style="margin-top:10px" href="https://www.recreation.gov/camping/campgrounds/231962" target="_blank">🏕️ Réserver sur Recreation.gov</a>
+    </div>
+
+  </div>
+
+  <div style="margin-top:20px; background:var(--card); border-radius:var(--radius); padding:16px 20px; border:1px solid var(--border);">
+    <div class="section-title" style="margin-bottom:12px">🔗 Liens utiles Olympic NP</div>
+    <div class="highlight-list">
+      <span class="hl-tag"><a href="https://www.nps.gov/olym/planyourvisit/camping.htm" target="_blank">📋 Camping NPS Olympic</a></span>
+      <span class="hl-tag"><a href="https://www.recreation.gov" target="_blank">🏕️ Recreation.gov</a></span>
+      <span class="hl-tag"><a href="https://www.nps.gov/olym/planyourvisit/hoh-rain-forest.htm" target="_blank">🌧️ Hoh Rain Forest</a></span>
+      <span class="hl-tag"><a href="https://www.nps.gov/olym/planyourvisit/hurricane-ridge.htm" target="_blank">🌬️ Hurricane Ridge</a></span>
+      <span class="hl-tag"><a href="https://www.nps.gov/olym/planyourvisit/rialto-beach.htm" target="_blank">🏖️ Rialto Beach</a></span>
+      <span class="hl-tag"><a href="https://www.nps.gov/olym/planyourvisit/sol-duc-hot-springs.htm" target="_blank">♨️ Sol Duc Hot Springs</a></span>
+      <span class="hl-tag"><a href="https://www.nps.gov/olym/planyourvisit/permits.htm" target="_blank">🎫 Permis & règles</a></span>
+      <span class="hl-tag"><a href="https://www.nps.gov/olym/planyourvisit/bear-country.htm" target="_blank">🐻 Règles anti-ours</a></span>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== RESERVATIONS ==================== -->
+<div id="reservations" class="page">
+  <div class="section-title">📋 Suivi des Réservations</div>
+
+  <div class="table-wrap" style="background:var(--card);">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Étape</th>
+          <th>Dates</th>
+          <th>Type</th>
+          <th>Coût/nuit</th>
+          <th>Statut</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>🌉 San Francisco<br><small style="color:var(--muted)">Inn on Broadway</small></td>
+          <td>3 juil · 2 nuits</td>
+          <td>Hôtel</td>
+          <td>195 $</td>
+          <td><span class="status ok">✅ Réservé</span></td>
+          <td style="font-size:0.82rem">390 $ total · check-in 15h00</td>
+        </tr>
+        <tr>
+          <td>🏔️ Yosemite NP<br><small style="color:var(--muted)">Crane Flat – Site 215</small></td>
+          <td>5 juil · 3 nuits</td>
+          <td>Camping</td>
+          <td>40 $</td>
+          <td><span class="status ok">✅ Réservé</span></td>
+          <td style="font-size:0.82rem">120 $ total · Compte : rousseljb</td>
+        </tr>
+        <tr>
+          <td>🏖️ Lake Tahoe<br><small style="color:var(--muted)">Kaspian Campground</small></td>
+          <td>8 juil · 2 nuits</td>
+          <td>Camping</td>
+          <td>35 $</td>
+          <td><span class="status ok">✅ Réservé</span></td>
+          <td style="font-size:0.82rem">Site 001</td>
+        </tr>
+        <tr>
+          <td>🌋 Mount Shasta<br><small style="color:var(--muted)">Summit View Inn</small></td>
+          <td>10 juil · 1 nuit</td>
+          <td>Hôtel</td>
+          <td>153 $</td>
+          <td><span class="status ok">✅ Réservé</span></td>
+          <td style="font-size:0.82rem">153 $ total · check-in 16h00</td>
+        </tr>
+        <tr>
+          <td>🌳 Redwoods<br><small style="color:var(--muted)">Ormand Guest Ranch</small></td>
+          <td>11 juil · 2 nuits</td>
+          <td>Ranch</td>
+          <td>90 $</td>
+          <td><span class="status ok">✅ Réservé</span></td>
+          <td style="font-size:0.82rem">Ormand Guest Ranch & Stables</td>
+        </tr>
+        <tr>
+          <td>🔵 Crater Lake</td>
+          <td>13 juil · 1 nuit</td>
+          <td>Hôtel</td>
+          <td>~150 $</td>
+          <td><span class="status todo">⚠️ À réserver</span></td>
+          <td style="font-size:0.82rem">Peu d'options — réserver vite !</td>
+        </tr>
+        <tr>
+          <td>🌊 Yachats, OR<br><small style="color:var(--muted)">Adobe Resort Yachats</small></td>
+          <td>14 juil · 2 nuits</td>
+          <td>Hôtel</td>
+          <td>200 $</td>
+          <td><span class="status ok">✅ Réservé</span></td>
+          <td style="font-size:0.82rem">400 $ total · Adobe Resort · Yachats, Oregon</td>
+        </tr>
+        <tr>
+          <td>🌊 Cannon Beach</td>
+          <td>16 juil · 2 nuits</td>
+          <td>Camping</td>
+          <td>~40 $</td>
+          <td><span class="status todo">⚠️ À réserver</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>🏔️ Mount Rainier<br><small style="color:var(--muted)">Cougar Rock</small></td>
+          <td>18 juil · 2 nuits</td>
+          <td>Camping</td>
+          <td>30 $</td>
+          <td><span class="status pending">⏳ Dispo 11 juil</span></td>
+          <td style="font-size:0.82rem">Disponible 11 juil à 10h</td>
+        </tr>
+        <tr>
+          <td>🌿 Olympic NP<br><small style="color:var(--muted)">Fairholme / Kalaloch</small></td>
+          <td>20 juil · 3 nuits</td>
+          <td>Camping</td>
+          <td>~35 $</td>
+          <td><span class="status pending">⏳ À réserver</span></td>
+          <td style="font-size:0.82rem">Fairholme 4 juil · Kalaloch 7 juil</td>
+        </tr>
+        <tr>
+          <td>✈️ Seattle<br><small style="color:var(--muted)">Moore Hotel</small></td>
+          <td>23 juil · 1 nuit</td>
+          <td>Hôtel</td>
+          <td>211 $</td>
+          <td><span class="status ok">✅ Réservé</span></td>
+          <td style="font-size:0.82rem">211 $ total · check-in 16h00</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tip-box" style="margin-top:16px">
+    ⚠️ <strong>Actions urgentes :</strong> Crater Lake (peu d'options), Cannon Beach — à réserver dès que possible.<br>
+    ⏳ Cougar Rock Rainier (11 juil à 10h ET) · Fairholme & Kalaloch Olympic (6 juil à 10h ET)
+  </div>
+</div>
+
+<!-- ==================== BUDGET ==================== -->
+<div id="budget" class="page">
+  <div class="section-title">💰 Budget Estimatif</div>
+
+  <div class="budget-total">
+    <div class="amount">~4 730 $</div>
+    <div class="label">Budget total estimé · ~2 365 $ / personne (2 voyageurs adultes)</div>
+  </div>
+
+  <div class="table-wrap" style="background:var(--card); margin-bottom:16px;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Catégorie</th>
+          <th>Budget ($)</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>🏨 Hébergement (21 nuits)</td>
+          <td>2 100 $</td>
+          <td style="font-size:0.82rem">Confirmé : SF 390 $ · Yosemite 120 $ · Tahoe ✅ · Shasta 153 $ · Redwoods ✅ · Adobe Yachats 400 $ · Seattle 211 $</td>
+        </tr>
+        <tr>
+          <td>⛽ Carburant (~2 000 mi @ 30mpg × $4.5)</td>
+          <td>~300 $</td>
+          <td style="font-size:0.82rem">~$5/gal en CA/OR/WA</td>
+        </tr>
+        <tr>
+          <td>🚐 Location minivan (21 jours)</td>
+          <td>2 200 $</td>
+          <td style="font-size:0.82rem">Mettre à 0 $ si véhicule perso</td>
+        </tr>
+        <tr>
+          <td>🍽️ Repas (21j × $100/j)</td>
+          <td>2 100 $</td>
+          <td style="font-size:0.82rem">Mix restaurants & épicerie</td>
+        </tr>
+        <tr>
+          <td>⛵ Alcatraz (ferry + visite)</td>
+          <td>50 $</td>
+          <td style="font-size:0.82rem"><a href="https://www.alcatrazcruises.com" target="_blank" style="color:var(--accent)">Réserver sur alcatrazcruises.com</a></td>
+        </tr>
+        <tr>
+          <td>🎫 America the Beautiful Pass</td>
+          <td>80 $</td>
+          <td style="font-size:0.82rem">Couvre Yosemite, Rainier, Olympic… <a href="https://store.usgs.gov/s3fs-public/2024-01/ATB_one_pager.pdf" target="_blank" style="color:var(--accent)">Info</a></td>
+        </tr>
+        <tr>
+          <td>🚢 Crater Lake — Wizard Island Boat Tour</td>
+          <td>45 $</td>
+          <td style="font-size:0.82rem">Réserver à l'avance</td>
+        </tr>
+        <tr>
+          <td>🎯 Activités & visites</td>
+          <td>350 $</td>
+          <td style="font-size:0.82rem">Aquarium Newport, kayak Tahoe…</td>
+        </tr>
+        <tr>
+          <td>🛍️ Souvenirs & shopping</td>
+          <td>500 $</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>🛡️ Divers / urgences (10% buffer)</td>
+          <td>430 $</td>
+          <td style="font-size:0.82rem">Recommandé</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="background:var(--card); border-radius:var(--radius); border:1px solid var(--border); padding:16px 20px;">
+    <div class="section-title" style="margin-bottom:12px">🔗 Liens utiles pour le budget</div>
+    <div class="highlight-list">
+      <span class="hl-tag"><a href="https://www.alcatrazcruises.com" target="_blank">⛵ Alcatraz — Réservation</a></span>
+      <span class="hl-tag"><a href="https://www.nps.gov/planyourvisit/passes.htm" target="_blank">🎫 America the Beautiful Pass</a></span>
+      <span class="hl-tag"><a href="https://www.gasbuddy.com" target="_blank">⛽ GasBuddy — Prix carburant</a></span>
+      <span class="hl-tag"><a href="https://www.google.com/maps/dir/San+Francisco,CA/Seattle,WA" target="_blank">🗺️ Itinéraire complet SF→Seattle</a></span>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== GEAR ==================== -->
+<div id="gear" class="page">
+  <div class="section-title">🏕️ Équipement Camping — 4 Personnes · Mini Van</div>
+  <p style="color:var(--muted); font-size:0.88rem; margin-bottom:20px">Optimisé pour ranger dans un minivan — 2 adultes + 2 enfants. Cliquez pour cocher.</p>
+
+  <div id="checklist-container"></div>
+
+  <div class="tip-box">
+    💡 <strong>Astuce van :</strong> rouler les vêtements, placer la glacière à l'avant, tente & matelas dans un sac filet sur le toit ou entre les rangées de sièges arrière.
+  </div>
+</div>
+
+<script>
+// Nav
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── WEATHER ──────────────────────────────────────────────────────────────
+const WMO = {
+  0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',
+  51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',
+  71:'🌨️',73:'🌨️',75:'❄️',80:'🌦️',81:'🌧️',82:'🌧️',
+  95:'⛈️',96:'⛈️',99:'⛈️'
+};
+function wmoIcon(code) { return WMO[code] || '🌡️'; }
+function fmtDate(iso) {
+  const d = new Date(iso + 'T12:00:00');
+  return d.toLocaleDateString('fr-FR', { weekday:'short', day:'numeric', month:'short' });
+}
+
+// Inject a loading placeholder into each stop card, then fetch
+document.querySelectorAll('#itinerary .stop-card[data-lat]').forEach((card, idx) => {
+  const bar = document.createElement('div');
+  bar.className = 'weather-loading';
+  bar.id = `wx-${idx}`;
+  bar.textContent = '🌡️ Chargement météo…';
+  card.appendChild(bar);
+});
+
+async function loadWeather() {
+  const cards = document.querySelectorAll('#itinerary .stop-card[data-lat]');
+  // Collect unique locations (group by lat/lon to minimize API calls)
+  const fetches = [...cards].map((card, idx) => ({
+    idx,
+    lat: card.dataset.lat,
+    lon: card.dataset.lon,
+    dates: card.dataset.dates.split(','),
+    seasonal: JSON.parse(card.dataset.seasonal)
+  }));
+
+  // Build unique lat/lon pairs
+  const unique = {};
+  fetches.forEach(f => {
+    const k = `${f.lat},${f.lon}`;
+    if (!unique[k]) unique[k] = { lat: f.lat, lon: f.lon, stops: [] };
+    unique[k].stops.push(f);
+  });
+
+  await Promise.all(Object.values(unique).map(async ({ lat, lon, stops }) => {
+    let forecastMap = {};
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,weathercode&timezone=auto&forecast_days=16`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.daily) {
+        data.daily.time.forEach((date, i) => {
+          forecastMap[date] = {
+            max: Math.round(data.daily.temperature_2m_max[i]),
+            min: Math.round(data.daily.temperature_2m_min[i]),
+            rain: data.daily.precipitation_probability_max[i] ?? 0,
+            code: data.daily.weathercode[i]
+          };
+        });
+      }
+    } catch(e) {}
+
+    stops.forEach(({ idx, dates, seasonal }) => {
+      const el = document.getElementById(`wx-${idx}`);
+      if (!el) return;
+
+      const liveDays = dates.filter(d => forecastMap[d]);
+      const missingDays = dates.filter(d => !forecastMap[d]);
+
+      if (liveDays.length === 0) {
+        // All seasonal
+        el.className = 'weather-seasonal';
+        el.innerHTML = `🌡️ <strong>Moyenne saisonnière juillet :</strong> ${seasonal.icon} ${seasonal.maxC}°C / ${seasonal.minC}°C &nbsp;·&nbsp; ${seasonal.desc} &nbsp;·&nbsp; 💧 ${seasonal.rain}% précip.`;
+        return;
+      }
+
+      // Build day cards for live days
+      let html = '';
+      liveDays.forEach(d => {
+        const f = forecastMap[d];
+        html += `<div class="weather-day">
+          <div class="wd-date">${fmtDate(d)}</div>
+          <div class="wd-icon">${wmoIcon(f.code)}</div>
+          <div class="wd-temps"><span class="wd-max">${f.max}°</span> <span class="wd-min">${f.min}°</span></div>
+          <div class="wd-rain">💧${f.rain}%</div>
+        </div>`;
+      });
+
+      el.className = 'weather-bar';
+      let label = liveDays.length === dates.length
+        ? '<span style="font-size:0.72rem;color:var(--muted);align-self:center;flex-shrink:0">📡 Prévisions live</span>'
+        : `<span style="font-size:0.72rem;color:var(--muted);align-self:center;flex-shrink:0">📡 Live + 🌡️ moy. saisonnière</span>`;
+
+      // Append seasonal note for missing days
+      let seasonalNote = '';
+      if (missingDays.length > 0) {
+        seasonalNote = `<div class="weather-seasonal" style="border-top:none;padding:4px 0 0">🌡️ Reste du séjour (moy. juillet) : ${seasonal.icon} ${seasonal.maxC}°C / ${seasonal.minC}°C · ${seasonal.desc}</div>`;
+      }
+
+      el.innerHTML = html + label;
+      if (seasonalNote) {
+        const note = document.createElement('div');
+        note.className = 'weather-seasonal';
+        note.style.borderTop = 'none';
+        note.style.paddingTop = '2px';
+        note.innerHTML = `🌡️ Jours restants (moy. juillet) : ${seasonal.icon} ${seasonal.maxC}°C / ${seasonal.minC}°C · ${seasonal.desc}`;
+        el.parentElement.appendChild(note);
+      }
+    });
+  }));
+}
+
+loadWeather();
+
+// Checklist data
+const gear = [
+  { section: '🛌 Couchage & Abri', items: [
+    { name: 'Tente 4 personnes (légère)', qty: 1, priority: '🔴', note: 'Dôme ou tunnel — vérifier imperméabilité avant départ' },
+    { name: 'Sacs de couchage', qty: 4, priority: '🔴', note: 'Adaptés ~8–15°C (nuits en altitude)' },
+    { name: 'Matelas / tapis de sol gonflables', qty: 4, priority: '🔴', note: 'Version compacte, gain de place dans le van' },
+    { name: 'Oreillers compressibles', qty: 4, priority: '🟡', note: '' },
+    { name: 'Bâche / tarp imperméable', qty: 1, priority: '🟡', note: 'Auvent devant la tente en cas de pluie' },
+  ]},
+  { section: '🍳 Cuisine', items: [
+    { name: 'Réchaud à gaz + cartouches', qty: 1, priority: '🔴', note: '2 cartouches min — vérifier règles parc (pas de feu à Yosemite parfois)' },
+    { name: 'Popote / casseroles emboîtables', qty: 1, priority: '🔴', note: 'Set 4 pièces, emboîtables' },
+    { name: 'Assiettes / bols inox ou bambou', qty: 4, priority: '🔴', note: '' },
+    { name: 'Couverts (fourchette, couteau, cs)', qty: 4, priority: '🔴', note: '' },
+    { name: 'Tasses / mugs', qty: 4, priority: '🟡', note: '' },
+    { name: 'Couteau de cuisine', qty: 1, priority: '🔴', note: '' },
+    { name: 'Planche à découper pliable', qty: 1, priority: '🟡', note: '' },
+    { name: 'Ouvre-boîte', qty: 1, priority: '🔴', note: '' },
+    { name: 'Allume-feu / briquet', qty: 2, priority: '🔴', note: '' },
+    { name: 'Éponge + liquide vaisselle biodégradable', qty: 1, priority: '🔴', note: 'Biodégradable obligatoire en zone naturelle' },
+    { name: 'Glacière rigide 40–50L', qty: 1, priority: '🔴', note: 'Ranger sous les sacs dans le van' },
+    { name: 'Bidon d\'eau 10L', qty: 1, priority: '🟡', note: 'Pour zones sans accès eau potable' },
+    { name: 'Filtre à eau (type Sawyer Squeeze)', qty: 1, priority: '🟡', note: 'Utile Yosemite Creek / zones primitives' },
+  ]},
+  { section: '🎒 Rangement & Van', items: [
+    { name: 'Sacs à dos rando 30–40L (adultes)', qty: 2, priority: '🔴', note: 'Pour sorties journée' },
+    { name: 'Petits sacs à dos enfants 15–20L', qty: 2, priority: '🟡', note: 'Enfants portent leur eau & snacks' },
+    { name: 'Sacs étanches / dry bags', qty: 4, priority: '🟡', note: 'Pour électronique et vêtements si pluie' },
+    { name: 'Filet de rangement / organiseur van', qty: 2, priority: '🟡', note: 'Accroché aux sièges pour accessoires' },
+    { name: 'Boîtes hermétiques nourriture', qty: 3, priority: '🔴', note: 'Anti-ours' },
+    { name: 'Bear canister (boîte anti-ours)', qty: 1, priority: '🔴', note: 'Obligatoire Yosemite & Olympic — louer sur place possible' },
+  ]},
+  { section: '👕 Vêtements & Hygiène', items: [
+    { name: 'Vêtements de rechange', qty: 4, priority: '🔴', note: 'Prévoir couches (froid le soir en altitude)' },
+    { name: 'Imperméable / poncho', qty: 4, priority: '🔴', note: 'Oregon & Olympic = pluie fréquente' },
+    { name: 'Chaussures de rando', qty: 4, priority: '🔴', note: '' },
+    { name: 'Sandales / claquettes camp', qty: 4, priority: '🟡', note: '' },
+    { name: 'Serviettes microfibre', qty: 4, priority: '🔴', note: 'Sèchent vite, compactes' },
+    { name: 'Kit hygiène (savon, brosse, etc.)', qty: 4, priority: '🔴', note: 'Savon biodégradable conseillé' },
+    { name: 'Papier toilette + sac poubelle', qty: 2, priority: '🔴', note: 'Certains camps sans sanitaires' },
+    { name: 'Lingettes humides', qty: 2, priority: '🟡', note: 'Utile quand douche indisponible' },
+  ]},
+  { section: '🔦 Éclairage & Énergie', items: [
+    { name: 'Lampes frontales', qty: 4, priority: '🔴', note: '1 par personne — piles de rechange' },
+    { name: 'Lanterne de camp LED', qty: 1, priority: '🟡', note: 'Pour l\'espace commun le soir' },
+    { name: 'Batterie externe (20 000 mAh)', qty: 2, priority: '🔴', note: 'Recharge téléphones & GPS en zone sans courant' },
+    { name: 'Câbles de charge multi-ports', qty: 1, priority: '🟡', note: 'USB-C / Lightning selon appareils' },
+    { name: 'Adaptateur allume-cigare USB', qty: 1, priority: '🔴', note: 'Recharge pendant les trajets en van' },
+  ]},
+  { section: '🧰 Sécurité & Santé', items: [
+    { name: 'Trousse de premiers secours', qty: 1, priority: '🔴', note: 'Pansements, désinfectant, antidouleur, anti-allergie' },
+    { name: 'Crème solaire SPF 50+', qty: 2, priority: '🔴', note: 'Altitude = UV plus intenses' },
+    { name: 'Anti-moustiques / DEET', qty: 2, priority: '🔴', note: 'Oregon & Olympic : moustiques abondants' },
+    { name: 'Spray ours (bear spray)', qty: 1, priority: '🟡', note: 'Recommandé Yosemite & Olympic — acheter sur place' },
+    { name: 'Couverture de survie', qty: 2, priority: '🟡', note: '' },
+    { name: 'Sifflet + miroir de signalisation', qty: 2, priority: '🟡', note: '' },
+    { name: 'Cartes papier / atlas routier', qty: 1, priority: '🔴', note: 'Zones sans réseau dans les parcs' },
+  ]},
+  { section: '🎮 Loisirs', items: [
+    { name: 'Jeux de cartes / de voyage', qty: 2, priority: '🟢', note: 'Soirées au camp' },
+    { name: 'Frisbee / ballon', qty: 1, priority: '🟢', note: 'Compact' },
+    { name: 'Jumelles', qty: 1, priority: '🟢', note: 'Faune & panoramas' },
+    { name: 'Livres / liseuse', qty: 0, priority: '🟢', note: '' },
+  ]},
+];
+
+// Load saved state
+const saved = JSON.parse(localStorage.getItem('gearChecklist') || '{}');
+
+const container = document.getElementById('checklist-container');
+gear.forEach((section, si) => {
+  const div = document.createElement('div');
+  div.className = 'checklist-section';
+  div.innerHTML = `<div class="checklist-section-title">${section.section}</div>`;
+  section.items.forEach((item, ii) => {
+    const key = `${si}-${ii}`;
+    const state = saved[key] || { checked: false, comment: '' };
+    const checked = state.checked || false;
+    const comment = state.comment || '';
+
+    const itemDiv = document.createElement('div');
+    itemDiv.className = `checklist-item${checked ? ' checked' : ''}`;
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.id = `cb-${key}`;
+    cb.checked = checked;
+    cb.addEventListener('change', () => saveItem(key, cb, ta));
+
+    const body = document.createElement('div');
+    body.style.flex = '1';
+
+    const label = document.createElement('div');
+    label.className = 'item-label';
+    label.innerHTML = `${item.priority} ${item.name}${item.qty > 1 ? ` <span style="color:var(--muted);font-size:0.8rem">×${item.qty}</span>` : ''}`;
+
+    const ta = document.createElement('textarea');
+    ta.className = 'item-comment';
+    ta.placeholder = '💬 Ajouter un commentaire…';
+    ta.value = comment;
+    ta.rows = 1;
+    ta.addEventListener('input', () => { ta.rows = ta.value.split('\n').length || 1; saveItem(key, cb, ta); });
+
+    body.appendChild(label);
+    if (item.note) {
+      const noteEl = document.createElement('div');
+      noteEl.className = 'item-note';
+      noteEl.textContent = item.note;
+      body.appendChild(noteEl);
+    }
+    body.appendChild(ta);
+
+    itemDiv.appendChild(cb);
+    itemDiv.appendChild(body);
+    div.appendChild(itemDiv);
+  });
+  container.appendChild(div);
+});
+
+function saveItem(key, cb, ta) {
+  const itemDiv = cb.closest('.checklist-item');
+  if (cb.checked) itemDiv.classList.add('checked');
+  else itemDiv.classList.remove('checked');
+  const state = JSON.parse(localStorage.getItem('gearChecklist') || '{}');
+  state[key] = { checked: cb.checked, comment: ta.value };
+  localStorage.setItem('gearChecklist', JSON.stringify(state));
+}
+
+// ── WORLD CUP 2026 — injected per stop card ──────────────────────────────────
+
+function wcRoundInfo(text) {
+  const t = (text || '').toLowerCase();
+  if (t.includes('final') && !t.includes('semi') && !t.includes('quarter') && !t.includes('third') && !t.includes('3rd'))
+    return { label: '🏆 Finale', cls: 'final-match', badge: 'final-badge', short: 'FINALE' };
+  if (t.includes('semi'))   return { label: '🔥 Demi-finale',     cls: '',             badge: 'sched-badge', short: 'Demi' };
+  if (t.includes('quarter'))return { label: '⚔️ Quart de finale', cls: '',             badge: 'sched-badge', short: 'Quart' };
+  if (t.includes('third') || t.includes('3rd'))
+                             return { label: '🥉 3e place',        cls: '',             badge: 'sched-badge', short: '3e place' };
+  if (t.includes('round of 16')) return { label: '🎯 1/8 de finale', cls: '',          badge: 'sched-badge', short: '1/8' };
+  if (t.includes('round of 32')) return { label: '🎯 1/16 de finale',cls: '',          badge: 'sched-badge', short: '1/16' };
+  return { label: '⚽ Match', cls: '', badge: 'sched-badge', short: 'WC' };
+}
+
+function wcTime(iso) {
+  return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Los_Angeles' }) + ' PT';
+}
+
+function wcTeam(team) {
+  if (!team || team.displayName === 'TBD') return `<span class="wc-tbd">TBD</span>`;
+  return `<span class="wc-team">${team.displayName || team.abbreviation}</span>`;
+}
+
+function renderWcInCard(card, matchesForDates) {
+  if (!matchesForDates.length) return;
+
+  const block = document.createElement('div');
+  block.className = 'wc-inline';
+
+  const header = `<div class="wc-inline-header">🏆 FIFA World Cup 2026 · <a href="https://www.fifa.com/fifaplus/en/tournaments/mens/worldcup/canadamexicousa2026" target="_blank">FIFA.com</a></div>`;
+
+  const rows = matchesForDates.map(m => {
+    const ri = wcRoundInfo(m.noteText);
+    const isFinal = ri.short === 'FINALE';
+    const cls = m.live ? 'wc-match live' : (isFinal ? 'wc-match final-match' : 'wc-match');
+    let badge = m.live
+      ? `<span class="wc-badge live-badge">🔴 LIVE</span>`
+      : m.completed
+        ? `<span class="wc-badge done-badge">Terminé</span>`
+        : `<span class="wc-badge ${ri.badge}">${ri.short}</span>`;
+    const middle = (m.completed || m.live)
+      ? `<span class="wc-score">${m.homeScore ?? '–'}&nbsp;–&nbsp;${m.awayScore ?? '–'}</span>`
+      : `<span class="wc-vs">vs</span>`;
+    return `<div class="${cls}">
+      <div class="wc-date">${wcTime(m.date)}</div>
+      <div class="wc-teams">${wcTeam(m.home)} ${middle} ${wcTeam(m.away)}</div>
+      <div class="wc-venue">${m.city}</div>
+      ${badge}
+    </div>`;
+  }).join('');
+
+  block.innerHTML = header + `<div class="wc-matches">${rows}</div>`;
+  card.appendChild(block);
+}
+
+// Static fallback schedule: date → list of matches
+const WC_STATIC = {
+  '2026-07-03': [{ noteText:'Round of 16', home:null, away:null, city:'Atlanta',     completed:false, live:false }],
+  '2026-07-04': [{ noteText:'Round of 16', home:null, away:null, city:'Dallas',      completed:false, live:false }],
+  '2026-07-05': [{ noteText:'Round of 16', home:null, away:null, city:'Los Angeles', completed:false, live:false }],
+  '2026-07-06': [{ noteText:'Round of 16', home:null, away:null, city:'Miami',       completed:false, live:false }],
+  '2026-07-09': [{ noteText:'Quarter-final',home:null,away:null, city:'Seattle',     completed:false, live:false }],
+  '2026-07-10': [{ noteText:'Quarter-final',home:null,away:null, city:'Boston',      completed:false, live:false }],
+  '2026-07-11': [{ noteText:'Quarter-final',home:null,away:null, city:'Los Angeles', completed:false, live:false }],
+  '2026-07-12': [{ noteText:'Quarter-final',home:null,away:null, city:'Kansas City', completed:false, live:false }],
+  '2026-07-14': [{ noteText:'Semi-final',   home:null, away:null, city:'Atlanta',    completed:false, live:false }],
+  '2026-07-15': [{ noteText:'Semi-final',   home:null, away:null, city:'Dallas',     completed:false, live:false }],
+  '2026-07-18': [{ noteText:'Third place',  home:null, away:null, city:'Miami',      completed:false, live:false }],
+  '2026-07-19': [{ noteText:'Final',        home:null, away:null, city:'MetLife Stadium — E. Rutherford', completed:false, live:false, date:'2026-07-19T22:00:00Z' }],
+};
+
+async function loadWorldCup() {
+  // Build per-date match index from ESPN API
+  let byDate = {};
+  let apiOk = false;
+
+  try {
+    const url = 'https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=20260703-20260719&limit=100';
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const events = data.events || [];
+
+    events.forEach(ev => {
+      const comp = ev.competitions?.[0] || {};
+      const date = (comp.date || ev.date || '').slice(0, 10);
+      if (date < '2026-07-03' || date > '2026-07-19') return;
+      const home = comp.competitors?.find(c => c.homeAway === 'home');
+      const away = comp.competitors?.find(c => c.homeAway === 'away');
+      const status = comp.status?.type || {};
+      const m = {
+        date: comp.date || ev.date,
+        home: home?.team,
+        away: away?.team,
+        homeScore: home?.score,
+        awayScore: away?.score,
+        city: comp.venue?.address?.city || comp.venue?.fullName || '',
+        completed: status.completed || false,
+        live: status.name === 'STATUS_IN_PROGRESS',
+        noteText: comp.notes?.[0]?.text || ev.name || '',
+      };
+      if (!byDate[date]) byDate[date] = [];
+      byDate[date].push(m);
+    });
+
+    if (Object.keys(byDate).length > 0) apiOk = true;
+  } catch(e) {}
+
+  // Fall back to static if API returned nothing
+  if (!apiOk) byDate = WC_STATIC;
+
+  // Inject into each stop card
+  document.querySelectorAll('#itinerary .stop-card[data-dates]').forEach(card => {
+    // Remove any previous injection
+    card.querySelectorAll('.wc-inline').forEach(el => el.remove());
+
+    const dates = card.dataset.dates.split(',');
+    const matches = dates.flatMap(d => byDate[d] || []);
+    if (matches.length) renderWcInCard(card, matches);
+  });
+}
+
+loadWorldCup();
+setInterval(loadWorldCup, 3 * 60 * 1000);
+</script>
+</body>
+</html>
